@@ -2,38 +2,70 @@ const prevButton = document.querySelector(".seta-anterior");
 const nextButton = document.querySelector(".seta-proxima");
 const dataElement = document.querySelector(".data");
 const diasElement = document.querySelector(".dias");
-var agendamentos = localStorage.getItem('agendamentos');
+var agendamentos = localStorage.getItem("agendamentos");
+agendamentos = JSON.parse(agendamentos);
+const tbody = document.querySelector("table tbody");
 
-if(!agendamentos || agendamentos.length == 0){
+if (!agendamentos || agendamentos.length == 0) {
   const arrayVazio = [];
-  localStorage.setItem('agendamentos',  JSON.stringify(arrayVazio))
+  localStorage.setItem("agendamentos", JSON.stringify(arrayVazio));
 }
+function gerarTabela() {
+  agendamentos = localStorage.getItem("agendamentos");
+  agendamentos = JSON.parse(agendamentos);
+  if (agendamentos.length > 0) {
+    tbody.innerHTML = "";
+    for (let i = 0; i < agendamentos.length; i++) {
+      const agendamento = agendamentos[i];
 
-if (agendamentos.length > 0) {
-  const tbody = document.querySelector("table tbody");
+      const novaLinha = document.createElement("tr");
 
-  for (let i = 0; i < agendamentos.length; i++) {
-    const agendamento = agendamentos[i];
+      const tdNome = document.createElement("td");
+      tdNome.textContent = agendamento.nome;
 
-    const novaLinha = document.createElement("tr");
+      const tdData = document.createElement("td");
+      tdData.textContent = agendamento.data;
 
-    const tdNome = document.createElement("td");
-    tdNome.textContent = agendamento.nome;
+      const tdMensagem = document.createElement("td");
+      tdMensagem.textContent = agendamento.mensagem;
 
-    const tdData = document.createElement("td");
-    tdData.textContent = agendamento.data;
+      const tdAcoes = document.createElement("td");
+      console.log(i);
+      tdAcoes.innerHTML = '<a onclick="editar(' + i + ')"> Editar </a> <a onclick="excluir(' + i + ')"> Excluir </a>';
 
-    const tdMensagem = document.createElement("td");
-    tdMensagem.textContent = agendamento.mensagem;
+      novaLinha.appendChild(tdNome);
+      novaLinha.appendChild(tdData);
+      novaLinha.appendChild(tdMensagem);
 
-    novaLinha.appendChild(tdNome);
-    novaLinha.appendChild(tdData);
-    novaLinha.appendChild(tdMensagem);
+      novaLinha.appendChild(tdAcoes);
 
-    tbody.appendChild(novaLinha);
+      tbody.appendChild(novaLinha);
+    }
+  } else {
+    tbody.innerHTML = "";
   }
 }
+gerarTabela();
+function excluir(i) {
+  let agendamentos = localStorage.getItem("agendamentos");
+  agendamentos = JSON.parse(agendamentos);
+  agendamentos.splice(i, 1);
+  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
+  gerarTabela();
+  alert("Excluiu");
+}
 
+function editar(i){
+  let agendamentos = localStorage.getItem("agendamentos");
+  agendamentos = JSON.parse(agendamentos);
+  console.log(agendamentos[i]);
+  document.getElementById("nome").value = agendamentos[i].nome;
+  document.getElementById("mensagem").value = agendamentos[i].mensagem;
+  document.getElementById("data_input").value = agendamentos[i].data;
+  document.getElementById("indice").value = i;
+  document.getElementById("myModal").style.display = "block";
+   
+}
 
 
 const meses = [
@@ -116,49 +148,58 @@ function atualizarCalendario() {
 
   formulario.addEventListener("submit", function (event) {
     event.preventDefault();
-  
+
     const nome = document.getElementById("nome").value;
     const mensagem = document.getElementById("mensagem").value;
     const data = document.getElementById("data_input").value;
-  
+    const indice = document.getElementById("indice").value;
+
     // Certifique-se de que 'agendamentos' seja um array inicializado corretamente ou recupere-o do localStorage se existir
     let agendamentos = JSON.parse(localStorage.getItem("agendamentos")) || [];
-  
+
     const informacoes = {
       data: data,
       nome: nome,
       mensagem: mensagem,
     };
-  
+    if(indice){
+      agendamentos[indice] = informacoes;
+    }else{
+      agendamentos.push(informacoes);
+    }
+
     // Adicione o novo agendamento ao array
-    agendamentos.push(informacoes);
-  
+    // agendamentos.push(informacoes);
+
     // Atualize o array no localStorage
     localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-  
+
+    gerarTabela();
+
     document.getElementById("nome").value = "";
+    document.getElementById("indice").value = "";
     document.getElementById("mensagem").value = "";
     document.getElementById("data_input").value = "";
     document.getElementById("myModal").style.display = "none";
-  
-    // Adicione a nova linha na tabela
-    const tbody = document.querySelector("table tbody");
-    const novaLinha = document.createElement("tr");
-  
-    const tdNome = document.createElement("td");
-    tdNome.textContent = nome;
-  
-    const tdData = document.createElement("td");
-    tdData.textContent = data;
-  
-    const tdMensagem = document.createElement("td");
-    tdMensagem.textContent = mensagem;
-  
-    novaLinha.appendChild(tdNome);
-    novaLinha.appendChild(tdData);
-    novaLinha.appendChild(tdMensagem);
-  
-    tbody.appendChild(novaLinha);
+
+    // // Adicione a nova linha na tabela
+    // const tbody = document.querySelector("table tbody");
+    // const novaLinha = document.createElement("tr");
+
+    // const tdNome = document.createElement("td");
+    // tdNome.textContent = nome;
+
+    // const tdData = document.createElement("td");
+    // tdData.textContent = data;
+
+    // const tdMensagem = document.createElement("td");
+    // tdMensagem.textContent = mensagem;
+
+    // novaLinha.appendChild(tdNome);
+    // novaLinha.appendChild(tdData);
+    // novaLinha.appendChild(tdMensagem);
+
+    // tbody.appendChild(novaLinha);
   });
 
   const diasRestantes = 7 - (diasElement.children.length % 7);
